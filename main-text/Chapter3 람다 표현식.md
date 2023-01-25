@@ -172,10 +172,10 @@ apply는 제네릭 형식 T를 인수로 받아 제네릭 형식 R 객체를 반
 4. test 메서드는 Apple을 받아 boolean을 반환하는 함수 디스크립터를 묘사한다.
 5. filter 메서드로 전달된 인수는 이와 같은 요구사항을 만족해야 한다.
           
-# 5. 메서드 참조
+# 5. 메서드 참조 와 생성자 참조
 
 메서드 참조를 이용하면 기존의 메서드 정의를 재활용해서 람다처럼 전달할 수 있다. 
-즉 람다의 축양형이라고 생각할 수 있다.          
+즉 람다의 축양형이라고 생각할 수 있다.  
 
 |람다|메서드 참조|          
 |--------------------------------------------|-------------------------| 
@@ -188,11 +188,123 @@ apply는 제네릭 형식 T를 인수로 받아 제네릭 형식 R 객체를 반
 메서드 참조를 만드는 방법
   
 1. 정적 메서드 참조 
-  
+> 람다  : (args) -> ClassName.staticMethod(args)
+    
+> 메서드 참조   : ClassName::staticMethod
+    
 2. 다양한 방식의 인스턴스 메서드 참조
+    
+> 람다 : (arg0, rest) -> arg0.instanceMethod(rest)
+    
+> 메서드 참조 : ClassName::instanceMethod
   
 3. 기존 객체의 인스턴스 메서드 참조 
+>람다 : (args) -> expr.instanceMethod(args)
+    
+>메서드 참조 : expr::instanceMethod    
 
+## 예시 
+    람다          : ToIntFunction<String> stringToInt = (String s) -> Integer.parseInt(s);
+    메서드 참조   : ToIntFunction<String> stringToInt = Integer::parseInt;
+    
+    람다          : BiPredicate<List<String>, String> contains = (list, element) -> list.contains(element);
+    메서드 참조   : BiPredicate<List<String>, String> contains = List::contains;
+    
+    람다          : Predicate<String> startsWithNumber = (String string) -> this.startsWithNumber(string);
+    메서드 참조   : Predicate<String> startsWithNumber = this::startsWithNumber;
 
- 
+생성자 참조는 ClassName::new 처럼 
+
+클래스명과 new 키워드를 이용해서 기존 생성자의 참조를 만들 수도 있다.    
+
+## 예시
+    
+    Supplier<Apple> c1 = Apple::new;
+    Apple a1 = c1.get();
+    
+    BiFunction<Color, Integer, Apple> c3 = Apple::new;
+    Apple a3 = c3.apply(GREEN, 110);
+    
 # 6. 람다 만들기
+
+사과 리스트를 이용해서 정렬 기법을 동작 파라미터화, 익명 클래스, 람다 표현식, 메서드 참조 등을 사용해보자
+
+## 1. 코드 전달
+    
+자바 8의 List API에서는 sort 메서드를 제공한다.
+    
+![image](https://user-images.githubusercontent.com/35757620/214518077-0d816562-192b-4bda-9547-dc239340391f.png)
+
+sort 메서드는 Comparator 객체를 인수로 받는다. 이 때 다양한 전략을 전달할 수 있기 때문에
+
+'sort의 동작은 파라미터화되었다'라고 말할 수 있다.
+    
+```java
+   public class AppleComparator implements Comparator<Apple> {
+    public int compare(Apple a1, Apple a2){
+        return a1.getWeight().compareTo(a2.getWeight());
+    }
+   }
+   inventory.sort(new AppleComparator());
+```    
+
+## 2. 익명 클래스 사용
+    
+한 번만 사용할 Comparator를 위 코드처럼 구현하는 것보다는 익명 클래스를 이용하는 것이 좋다.
+
+```java
+   inventory.sort(new Comparator<Apple>() {
+    public int compare(Apple a1, Apple a2){
+        return a1.getWeight().compareTo(a2.getWeight());
+    }
+   }
+```    
+    
+## 3. 람다 표현식 사용
+
+추상 메서드의 시그니처(함수 디스크립터)는 람다 표현식의 시그니처를 정의한다.
+    
+Comparator의 함수 디스크립터는 (T, T) -> int이므로 정확히 표현하면
+  
+(Apple, Apple) -> int로 표현할 수 있다.
+    
+```java
+   inventory.sort((Apple a1, Apple a2) -> a1.getWeight().compareTo(a2.getWeight()) 
+```
+자바 컴파일러는 람다 표현식이 사용된 콘텍스트를 활용해서 람다의 파라미터 형식을 추론화할 수 있다.
+
+```java
+   inventory.sort((a1, a2) -> a1.getWeight().compareTo(a2.getWeight()));
+``` 
+
+Comparator는 Comparable 키를 추출해서 Comparator 객체로 만드는 Function 함수를 인수로 받는
+정적 메서드 comparing을 포함한다.
+    
+![image](https://user-images.githubusercontent.com/35757620/214521270-8cb5e27a-08c2-4f09-b0d8-aff15b43ab25.png)    
+
+comparing 메서드를 사용하면 다음과 같다.(더 공부해야 할 부분)
+
+```java
+    import static java.util.Comparator.comparing;
+    inventory.sort(comparing(apple -> apple.getWeight()));
+```
+    
+4. 메서드 참조 사용
+    
+마지작으로 메서드 참조를 사용하면 람다 표현식의 인수를 더 깔끔하게 전달할 수 있다.
+```java
+   inventory.sort(comparing(Apple::getWeight));
+```
+
+# 6. 마치며
+- 람다 표현식은 익명 함수의 일종이다. 이름은 없지만, 파라미터 리스트, 바디, 반환 형식을 가지며 예외를 던질 수 있다.
+- 람다 표현식으로 간결한 코드를 구현할 수 있다.
+- 함수형 인터페이스는 하나의 추상 메서드만을 정의하는 인터페이스이다.
+- 함수형 인터페이스를 기대하는 곳에서만 람다 표현식을 사용할 수 있다.
+- 람다 표현식을 이용해서 함수형 인터페이스의 추상 메서드를 즉석으로 제공할 수 있으며 람다 표현식 전체가 함수형 인터페이스의 인스턴스로 취급된다.
+- java.util.function 패키지는 Predicate<T>, Function<T,R>, Supplier<T>, Consumer<T>, BinaryOperator<T> 등을 포함해서 자주 사용하는 다양한 함수형 인터페이스를 제공한다.
+- 자바 8은 Predicate<T>와 Funtion<T,R> 같은 제네릭 함수형 인터페이스와 관련한 박싱 동작을 피할 수 있는 IntPredicate, IntToLongFunction 등과 같은 기본형 특화 인터페이스도 제공한다.
+- 실행 어라운트 패턴을 람다와 활용하면 유연성과 재사용성을 추가로 얻을 수 있다.
+- 람다 표현식의 기대 형식을 대상 형식이라고 한다.
+- 메서드 참조를 이용하면 기존의 메서드 구현을 재사용하고 직접 전달할 수 있다.
+- Comparator, Predicate, Function 같은 함수형 인터페이스는 람다 표현식을 조합할 수 있는 다양한 디폴트 메서드를 제공한다.  
