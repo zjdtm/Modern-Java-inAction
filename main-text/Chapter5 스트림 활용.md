@@ -120,10 +120,11 @@ skip 메서드는 처음 몇개의 요소를 건너뛰는는 메서드이다.
   
   예제 코드를 보면 이해하기 더 수월해진다.
   ### 예제
-  > ["Java", "Python", "Javascript"] 리스트에서 중복을 제거한 고유문자로 이루어진 리스트를 반환하고자 한다.
-    ex) ["J", "a", "v", "P", "y", "t", "h", "o", "n", "s", "c", "r", "i", "p"]
-    그러면 다음과 같은 코드를 작성할 수 있다.
-    ```java
+> ["Java", "Python", "Javascript"] 리스트에서 중복을 제거한 고유문자로 이루어진 리스트를 반환하고자 한다.
+  ex) ["J", "a", "v", "P", "y", "t", "h", "o", "n", "s", "c", "r", "i", "p"]
+  그러면 다음과 같은 코드를 작성할 수 있다.
+  
+```java
        List<String[]> result = codingLanguage.stream()
             .map(word -> word.split(" "))
             .distinct()
@@ -132,11 +133,10 @@ skip 메서드는 처음 몇개의 요소를 건너뛰는는 메서드이다.
         map 메서드가 반환한 스트림의 형식은 Stream<String[]>이다.
         [["J", "a", "v"], ["P", "y", "t", "h", "o", "n"], ["s", "c", "r", "i", "p"]]
       */
-    ```
-    원하던 결과가 나오지 않았다. 원하는 방식은 Stream<String>을 반환하는 것인데 해결책은 flatMap 메서드이다.
-    flatMap 메서드를 사용하면 스트림의 각 값을 다른 스트림으로 만든 다음에 모든 스트림을 하나의 스트림으로 연결하는 기능을
-    수행한다.
-    ```java
+```
+원하던 결과가 나오지 않았다. 원하는 방식은 Stream<String>을 반환하는 것인데 해결책은 flatMap 메서드이다.
+flatMap 메서드를 사용하면 스트림의 각 값을 다른 스트림으로 만든 다음에 모든 스트림을 하나의 스트림으로 연결하는 기능을 수행한다.
+```java
       List<String> result_flatMap = codingLanguage.stream()
                    .map(word -> word.split(" "))
                    .flatMap(Arrays::stream)  // Arrays::stream : 배열을 스트림으로 만들어줌
@@ -144,7 +144,7 @@ skip 메서드는 처음 몇개의 요소를 건너뛰는는 메서드이다.
                    .collect(toList());
       System.out.println("result_flatMap = " + result_flatMap);
       // result_flatMap = [J, a, v, P, y, t, h, o, n, s, c, r, i, p]
-    ```
+```
   
 # 4. 검색과 매칭
 # 5. 리듀싱
