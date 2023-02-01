@@ -93,6 +93,37 @@ Collectors.groupingBy 메서드를 사용하면 한 줄의 코드로 그룹화�
 
 groupingBy 메서드 인자에 함수를 넣어주면 함수를 기준으로 스트림이 그룹화한다. 이때 함수를 분류 함수라고 부른다.
 
+```java
+  List<String> pl = Arrays.asList("java", "go", "javascript", "python", "c", "c#", "c++");
+  
+  Map<Integer, List<String>> plLanguage = pl.stream().collect(groupingBy(String::length));
+  System.out.println("plLanguage = " + plLanguage); 
+  // plLanguage = {1=[c], 2=[go, c#], 3=[c++], 4=[java], 6=[python], 10=[javascript]}
+```
 
+요소를 그룹화 한 다음에는 여러 가지 조작하는 것이 가능하다.
+
+Collectors.filtering 메서드를 groupingBy 메서드에 두 번째 인자에 넣어주면 리스트 중에서 원하는 요소만 필터링 할 수 있다.
+```java
+   Map<Integer, List<String>> result = pl.stream().collect(groupingBy(String::length, filtering(c -> c.length() == 2, toList())));
+
+   System.out.println("result = " + result);
+   // result = {1=[], 2=[go, c#], 3=[], 4=[], 6=[], 10=[]}
+```
+
+Collectors.mapping 메서드는 요소를 변환하는 작업을 한다.
+
+Collectors.flatMapping 메서드는 배열 형태의 리스트를 평면화 시켜준다.
+
+또한 다수준으로 그룹화가 가능한데 groupingBy 메서드를 연속으로 사용하면 가능하다.
+```java
+  Map<Dish.Type, Map<CaloricLevel, List<Dish>>> dishesByTypeCaloricLevel = menu.stream().collect(
+                groupingBy(Dish::getType, groupingBy(dish -> {
+                    if (dish.getCalories() <= 400) return CaloricLevel.DIET;
+                    else if (dish.getCalories() <= 700) return CaloricLevel.NORMAL;
+                    else return CaloricLevel.FAT;
+                }))
+        );
+```
 
 # 자신만의 커스텀 컬렉터 개발
